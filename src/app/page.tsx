@@ -58,77 +58,96 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-base-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold text-center text-primary mb-2">Welcome to Ori</h1>
-          <p className="text-center text-base-content opacity-80">
+    <div className="min-h-screen bg-base-100 flex flex-col justify-center items-center px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-10">
+          <h1 className="text-5xl font-bold text-primary mb-3">Welcome to Ori</h1>
+          <p className="text-xl text-base-content opacity-80">
             Enhance your AI interactions
           </p>
         </div>
-        <div className="bg-base-200 rounded-lg shadow-xl p-8">
-          <h2 className="text-2xl font-semibold text-center text-base-content mb-6">
-            {isLogin ? "Login" : "Create Account"}
-          </h2>
-          {error && <p className="text-error text-center mb-4">{error}</p>}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div>
-                <label htmlFor="name" className="sr-only">Name</label>
+        
+        <div className="card bg-base-200 shadow-2xl">
+          <div className="card-body">
+            <h2 className="card-title text-2xl font-bold text-center mb-6">
+              {isLogin ? "Login" : "Create Account"}
+            </h2>
+            
+            {error && (
+              <div className="alert alert-error mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>{error}</span>
+              </div>
+            )}
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {!isLogin && (
+                <div className="form-control">
+                  <label className="label" htmlFor="name">
+                    <span className="label-text">Name</span>
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    placeholder="Name"
+                    className="input input-bordered w-full"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+              <div className="form-control">
+                <label className="label" htmlFor="email">
+                  <span className="label-text">Email</span>
+                </label>
                 <input
-                  id="name"
-                  type="text"
-                  placeholder="Name"
-                  className="input input-bordered w-full bg-base-100 text-base-content"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="Email"
+                  className="input input-bordered w-full"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
-            )}
-            <div>
-              <label htmlFor="email" className="sr-only">Email</label>
-              <input
-                id="email"
-                type="email"
-                placeholder="Email"
-                className="input input-bordered w-full bg-base-100 text-base-content"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <div className="form-control">
+                <label className="label" htmlFor="password">
+                  <span className="label-text">Password</span>
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="Password"
+                  className="input input-bordered w-full"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-control mt-6">
+                <button type="submit" className="btn btn-primary w-full">
+                  {isLogin ? "Login" : "Register"}
+                </button>
+              </div>
+            </form>
+            
+            <div className="divider">OR</div>
+            
+            <div className="text-center">
+              <a
+                href="#"
+                className="link link-primary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsLogin(!isLogin);
+                }}
+              >
+                {isLogin
+                  ? "New to Ori? Create an account"
+                  : "Already have an account? Login"}
+              </a>
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Password</label>
-              <input
-                id="password"
-                type="password"
-                placeholder="Password"
-                className="input input-bordered w-full bg-base-100 text-base-content"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <button type="submit" className="btn btn-primary w-full">
-                {isLogin ? "Login" : "Register"}
-              </button>
-            </div>
-          </form>
-          <div className="text-center mt-4">
-            <a
-              href="#"
-              className="text-primary hover:underline"
-              onClick={(e) => {
-                e.preventDefault();
-                setIsLogin(!isLogin);
-              }}
-            >
-              {isLogin
-                ? "New to Ori? Create an account"
-                : "Already have an account? Login"}
-            </a>
           </div>
         </div>
       </div>

@@ -13,7 +13,7 @@ export async function signUp(name: string, email: string, password: string) {
   const user = await prisma.user.create({
     data: { name, email, password: hashedPassword },
   });
-  return { id: user.id, name: user.name, email: user.email };
+  return { id: user.id, name: user.name, email: user.email, apiKey: ''};
 }
 
 export async function verifyCredentials(email: string, password: string) {
@@ -27,5 +27,5 @@ export async function verifyCredentials(email: string, password: string) {
     return null;
   }
 
-  return { id: user.id, name: user.name, email: user.email };
+  return { id: user.id, name: user.name, email: user.email, apiKey: user.apiKey };
 }
