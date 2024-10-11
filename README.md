@@ -15,7 +15,7 @@ Ori.wtf is an advanced AI-powered chat platform that enhances your interactions 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/ori-wtf.git
+   git clone https://github.com/m4yc3x/ori-wtf.git
    cd ori-wtf
    ```
 
@@ -66,7 +66,7 @@ Ori.wtf is an advanced AI-powered chat platform that enhances your interactions 
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for more details.
+You can contribute if you want!
 
 ## 📄 License
 
