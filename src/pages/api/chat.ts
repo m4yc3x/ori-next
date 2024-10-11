@@ -43,6 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         content: message,
         userId: session.user.id,
         chatId: chat.id,
+        role: 'user',
       },
     });
 
@@ -55,6 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         content: aiResponse,
         userId: session.user.id, // You might want to use a special ID for the AI
         chatId: chat.id,
+        role: 'assistant',
       },
     });
 
@@ -74,11 +76,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           id: userMessage.id,
           content: userMessage.content,
           role: 'user',
+          createdAt: userMessage.createdAt,
         },
         {
           id: assistantMessage.id,
           content: assistantMessage.content,
           role: 'assistant',
+          createdAt: assistantMessage.createdAt,
         },
       ],
     });

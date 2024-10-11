@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             id: true,
             content: true,
             createdAt: true,
-            userId: true,
+            role: true,
           },
         },
       },
@@ -43,7 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const formattedMessages = chat.messages.map(message => ({
       id: message.id,
       content: message.content,
-      role: message.userId === session.user.id ? 'user' : 'assistant',
+      role: message.role,
+      createdAt: message.createdAt,
     }));
 
     res.status(200).json(formattedMessages);

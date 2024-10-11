@@ -8,7 +8,7 @@ interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
-  createdAt: Date;
+  createdAt: string;
 }
 
 export default function ChatView() {
@@ -85,6 +85,16 @@ export default function ChatView() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -105,6 +115,9 @@ export default function ChatView() {
             <div key={message.id} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
               <div className={`chat-bubble ${message.role === 'user' ? 'chat-bubble-primary' : 'chat-bubble-secondary'}`}>
                 {message.content}
+              </div>
+              <div className="chat-footer opacity-50 text-xs">
+                {formatDate(message.createdAt)}
               </div>
             </div>
           ))
