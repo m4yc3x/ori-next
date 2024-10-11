@@ -70,11 +70,14 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-base-200 p-4 md:p-8">
+    <div className="min-h-screen md:p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">Profile Settings</h1>
-        <div className="bg-base-100 shadow-xl rounded-box overflow-hidden">
+        <div className="bg-base-200 shadow-xl rounded-box overflow-hidden">
           <div className="p-6 md:p-8">
+          <div className="card-title text-xl font-bold">Profile Settings</div>
+            
+            <div className="divider"></div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="form-control">
@@ -145,6 +148,7 @@ export default function Settings() {
                   onChange={(e) => setApiKey(e.target.value)}
                 />
               </div>
+              <div className="divider"></div>
               <div className="form-control mt-6">
                 <button type="submit" className="btn btn-primary w-full" disabled={isLoading}>
                   {isLoading ? <span className="loading loading-spinner"></span> : 'Save Changes'}
