@@ -3,6 +3,8 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import Link from 'next/link';
+import { MessageSquarePlus } from 'lucide-react';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -23,12 +25,18 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-base-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full space-y-8">
-        <h1 className="text-4xl font-bold text-center text-primary mb-2">Welcome to your Dashboard</h1>
-        <p className="text-center text-base-content">
-          You are logged in as {session.user?.name || session.user?.email}
+    <div className="min-h-screen max-h-screen overflow-hidden bg-base-100 flex items-center justify-center px-4">
+      <div className="max-w-xl w-full">
+        <h1 className="text-4xl font-bold text-center text-primary mb-2">Ready to start a conversation?</h1>
+        <p className="text-center text-base-content text-sm mb-4">
+          Click on the button below or use the sidebar to start a conversation.
         </p>
+        <div className="flex justify-center">
+          <Link href="/dashboard/chat/new" className="btn btn-outline bg-base-200 flex items-center gap-2">
+            <MessageSquarePlus size={20} />
+            Start Chat
+          </Link>
+        </div>
       </div>
     </div>
   );
