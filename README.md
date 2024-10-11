@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ori.wtf - AI-Powered Chat Platform
 
-## Getting Started
+![Ori.wtf Logo](https://ori.wtf/logo.png)
 
-First, run the development server:
+Ori.wtf is an advanced AI-powered chat platform that enhances your interactions with artificial intelligence. Experience seamless conversations and unlock the potential of AI-assisted communication.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Quick Start
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Prerequisites
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Node.js v18.19.1 or later
+- MariaDB
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Installation
 
-## Learn More
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/ori-wtf.git
+   cd ori-wtf
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+   Note: You may see 2 audit warnings. These can be safely ignored for now.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Set up the database:
+   ```bash
+   sudo mariadb -u root
+   ```
+   Then in the MariaDB prompt:
+   ```sql
+   CREATE DATABASE oridb;
+   CREATE USER 'ori'@'localhost' IDENTIFIED BY 'password';
+   GRANT ALL PRIVILEGES ON oridb.* TO 'ori'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. Configure environment variables:
+   Generate a secret:
+   ```bash
+   openssl rand -base64 32
+   ```
+   Create a `.env` file in the project root:
+   ```
+   DATABASE_URL="mysql://ori:password@localhost:3306/oridb"
+   NEXTAUTH_SECRET="your-generated-secret"
+   NEXTAUTH_URL="http://localhost:3000"
+   ```
 
-## Deploy on Vercel
+5. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛠 Tech Stack
+
+- [Next.js](https://nextjs.org/) - React framework
+- [Prisma](https://www.prisma.io/) - ORM
+- [NextAuth.js](https://next-auth.js.org/) - Authentication
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [DaisyUI](https://daisyui.com/) - UI components
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for more details.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgements
+
+- [Groq Console](https://console.groq.com/) for AI technology inspiration
+
+---
+
+Built with ❤️
+
