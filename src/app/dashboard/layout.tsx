@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Plus } from 'lucide-react';
+import { Plus, Edit2, X, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface Chat {
@@ -21,6 +21,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [recentChats, setRecentChats] = useState<Chat[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -42,6 +43,27 @@ export default function DashboardLayout({
     }
   };
 
+  const deleteChat = async (chatId: string) => {
+    try {
+      const response = await fetch(`/api/chats/${chatId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setRecentChats(prevChats => prevChats.filter(chat => chat.id !== chatId));
+        if (pathname === `/dashboard/chat/${chatId}`) {
+          router.push('/dashboard');
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to delete chat:', errorData.error);
+        // You might want to show an error message to the user here
+      }
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      // You might want to show an error message to the user here
+    }
+  };
+
   if (status === "loading") {
     return <div className="flex justify-center items-center h-screen">
       <span className="loading loading-spinner loading-lg"></span>
@@ -58,7 +80,7 @@ export default function DashboardLayout({
       <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content flex flex-col">
         {/* Navbar */}
-        <div className="w-full navbar bg-base-200 lg:hidden">
+        <div className="w-full navbar bg-base-200 lg:hidden fixed top-0 z-20">
           <div className="flex-none">
             <label htmlFor="my-drawer-2" className="btn btn-square btn-ghost">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-6 h-6 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -71,9 +93,9 @@ export default function DashboardLayout({
           {children}
         </div>
       </div> 
-      <div className="drawer-side">
+      <div className="drawer-side z-30">
         <label htmlFor="my-drawer-2" className="drawer-overlay"></label> 
-        <div className="w-80 h-full bg-base-200 text-base-content flex flex-col">
+        <div className="w-80 h-full bg-base-200 text-base-content flex flex-col border-r border-base-100">
           <div className="p-4 flex-none">
             <div className="mb-2 font-bold text-xl flex flex-row justify-between items-center">
               <span>O R I . W T F</span>
@@ -108,18 +130,29 @@ export default function DashboardLayout({
             </ul>
           </div>
           <div className="flex-grow overflow-y-auto p-4">
-            <div className="mb-2 text-lg flex flex-row justify-between items-center">
-              <span>Chat History<span className="opacity-50 text-xs">&nbsp;&nbsp;({recentChats.length}/10)</span></span>
-              <Link href="/dashboard/chat/new" className="btn btn-sm btn-ghost bg-base-200 flex items-center gap-2 text-xs">
-                <Plus size={16} />
-                New Chat
-              </Link>
+            <div className="mb-2 flex flex-row justify-between items-center">
+              <span className="flex items-center gap-1">
+                <button 
+                  onClick={() => setIsEditMode(!isEditMode)} 
+                  className="btn btn-sm btn-ghost bg-base-200 px-2"
+                >
+                  {isEditMode ? <X size={16} /> : <Edit2 size={16} />}
+                </button>
+                Chat&nbsp;History
+                <span className="opacity-50 text-xs">({recentChats.length}/10)</span>
+              </span>
+              <div className="flex items-center">
+                <Link href="/dashboard/chat/new" className="btn btn-sm btn-ghost bg-base-200 flex items-center gap-2 text-xs">
+                  <Plus size={16} />
+                  New Chat
+                </Link>
+              </div>
             </div>
             <ul className="menu">
               {recentChats.length > 0 ? (
                 recentChats.map((chat) => (
-                  <li key={chat.id}>
-                    <Link href={`/dashboard/chat/${chat.id}`} className={pathname === `/dashboard/chat/${chat.id}` ? 'active' : ''} onClick={() => document.getElementById('my-drawer-2')?.click()}>
+                  <li key={chat.id} className="flex items-center">
+                    <Link href={isEditMode ? `#` : `/dashboard/chat/${chat.id}`} className={`flex-grow ${pathname === `/dashboard/chat/${chat.id}` ? 'active' : ''}`} onClick={() => document.getElementById('my-drawer-2')?.click()}>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                       </svg>
@@ -127,7 +160,17 @@ export default function DashboardLayout({
                         {chat.messages[0]?.content.substring(0, 30) || 'New Chat'}
                       </span>
                       <span className="text-xs opacity-50">
-                        {new Date(chat.updatedAt).toLocaleDateString()}
+
+                        {isEditMode ? (
+                        <button 
+                            onClick={() => deleteChat(chat.id)} 
+                            className="btn btn-sm btn-ghost text-error"
+                        >
+                            <Trash2 size={16} />
+                            </button>
+                        ) : (
+                          new Date(chat.updatedAt).toLocaleDateString()
+                        )}
                       </span>
                     </Link>
                   </li>
