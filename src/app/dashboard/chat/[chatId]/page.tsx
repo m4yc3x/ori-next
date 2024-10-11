@@ -113,7 +113,7 @@ export default function ChatView() {
         ) : (
           messages.map((message) => (
             <div key={message.id} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
-              <div className={`chat-bubble ${message.role === 'user' ? 'chat-bubble-primary' : 'chat-bubble-secondary'}`}>
+              <div className={`chat-bubble ${message.role === 'user' ? 'chat-bubble' : 'chat-bubble-secondary bg-neutral-900'}`}>
                 {message.content}
               </div>
               <div className="chat-footer opacity-50 text-xs">
@@ -134,7 +134,7 @@ export default function ChatView() {
             className="input input-bordered flex-1"
             disabled={isLoading}
           />
-          <button type="submit" className="btn btn-primary" disabled={isLoading}>
+          <button type="submit" className="btn btn-outline" disabled={isLoading}>
             {isLoading ? <Loader2 className="animate-spin" /> : <Send />}
           </button>
         </div>

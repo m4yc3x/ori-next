@@ -109,7 +109,7 @@ export default function DashboardLayout({
           </div>
           <div className="flex-grow overflow-y-auto p-4">
             <div className="mb-2 text-lg flex flex-row justify-between items-center">
-              <span>Chat History</span>
+              <span>Chat History<span className="opacity-50 text-xs">&nbsp;&nbsp;({recentChats.length}/10)</span></span>
               <Link href="/dashboard/chat/new" className="btn btn-sm btn-ghost bg-base-200 flex items-center gap-2 text-xs">
                 <Plus size={16} />
                 New Chat
