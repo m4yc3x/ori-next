@@ -1,7 +1,7 @@
 # Ori.wtf - AI-Powered Chat Platform
 
-![Ori.wtf Example 1](examples/0.1.2a.png)
-![Ori.wtf Example 2](examples/0.1.2b.png)
+![Ori.wtf Example 1](example/0.1.2a.png)
+![Ori.wtf Example 2](example/0.1.2b.png)
 
 Ori.wtf is an advanced AI-powered chat platform that enhances your interactions with artificial intelligence. Experience seamless conversations and unlock the potential of AI-assisted communication.
 
