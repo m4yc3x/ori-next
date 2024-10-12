@@ -14,6 +14,10 @@ interface Message {
   searchResults?: string;
 }
 
+const Paragraph = ({ children }: { children: React.ReactNode }) => (
+  <p className="mb-4">{children}</p>
+);
+
 export default function ChatView() {
   const { chatId } = useParams() as { chatId: string };
   const router = useRouter();
@@ -154,14 +158,28 @@ export default function ChatView() {
         const searchQuery = matches[1];
         return (
           <>
-            <ReactMarkdown>{message.content}</ReactMarkdown>
+            <ReactMarkdown
+              components={{
+                p: Paragraph,
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
             <br />
             <strong>Searching for:</strong> <span className="font-semibold text-primary">{searchQuery.toLowerCase().replace('search', '').replace('query', '')}</span>
           </>
         );
       }
     }
-    return <ReactMarkdown >{message.content}</ReactMarkdown>;
+    return (
+      <ReactMarkdown
+        components={{
+          p: Paragraph,
+        }}
+      >
+        {message.content}
+      </ReactMarkdown>
+    );
   };
 
   return (
