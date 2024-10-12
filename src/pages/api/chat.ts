@@ -85,6 +85,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const stepResponse = await groq.generateResponse(conversationHistory, step.name, message);
 
+        let searchResults = '';
+        if (step.name === 'Web search') {
+          searchResults = await groq.performSearch(stepResponse);
+        }
+
         const savedMessage = await prisma.message.create({
           data: {
             content: stepResponse,
@@ -98,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         conversationHistory.push({ role: 'assistant', content: stepResponse });
         conversationHistory.push({ role: 'user', content: `Proceed to the next step: ${steps[index + 1]?.name || 'Final response'}` });
 
-        res.write(`data: ${JSON.stringify({ type: 'message', id: savedMessage.id, content: stepResponse, step: step.name })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'message', id: savedMessage.id, content: stepResponse, step: step.name, searchResults })}\n\n`);
       } catch (stepError: any) {
         console.error(`Error in step ${step.name}:`, stepError);
         res.write(`data: ${JSON.stringify({ type: 'error', message: `Error in ${step.name}: ${stepError.message}` })}\n\n`);

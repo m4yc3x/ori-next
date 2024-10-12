@@ -66,7 +66,7 @@ export class GroqAPI {
     }
   }
 
-  private async performSearch(initialResponse: string): Promise<string> {
+  public async performSearch(initialResponse: string): Promise<string> {
     const matches = initialResponse.match(/\[\[(.*?)\]\]/);
     let searchQuery = matches ? matches[1] : initialResponse;
 
@@ -78,27 +78,29 @@ export class GroqAPI {
         {
           headers: {
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/png,image/svg+xml,*/*;q=0.8',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Encoding': 'gzip, deflate, br, zstd',
             'Accept-Language': 'en-US,en;q=0.5',
             'Connection': 'keep-alive',
+            'Content-Length': '27',
             'Content-Type': 'application/x-www-form-urlencoded',
             'Host': 'html.duckduckgo.com',
             'Origin': 'https://html.duckduckgo.com',
+            'Priority': 'u=0, i',
             'Referer': 'https://html.duckduckgo.com/',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'same-origin',
+            'Sec-Fetch-User': '?1',
+            'TE': 'trailers',
+            'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0',
           }
         }
       );
 
       const dom = new JSDOM(response.data);
-      const results = dom.window.document.querySelectorAll('.result__body');
-      let searchResults = '';
-
-      results.forEach((result, index) => {
-        if (index < 5) {  // Limit to first 5 results
-          searchResults += result.textContent + '\n\n';
-        }
-      });
+      const body = dom.window.document.body;
+      const searchResults = body.textContent?.replace(/\s+/g, ' ').trim() || '';
 
       return `Search results for query '${searchQuery}':\n\n${searchResults}`;
     } catch (error) {

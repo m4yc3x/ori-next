@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Send, Loader2, MessageSquarePlus } from 'lucide-react';
+import { Send, Loader2, MessageSquarePlus, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -10,6 +10,7 @@ interface Message {
   role: 'user' | 'assistant';
   createdAt: string;
   step?: string;
+  searchResults?: string;
 }
 
 export default function ChatView() {
@@ -119,6 +120,7 @@ export default function ChatView() {
           role: 'assistant',
           createdAt: new Date().toISOString(),
           step: data.step,
+          searchResults: data.searchResults,
         }]);
         break;
       case 'error':
@@ -157,6 +159,17 @@ export default function ChatView() {
           <div key={message.id} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
             <div className={`chat-bubble ${message.role === 'user' ? 'chat-bubble' : 'chat-bubble-secondary bg-neutral-900'}`}>
               {message.content}
+              {message.searchResults && (
+                <details className="mt-2 bg-base-200 rounded-lg">
+                  <summary className="cursor-pointer p-2 flex items-center">
+                    <span className="mr-2">Raw Search Results</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </summary>
+                  <pre className="p-2 whitespace-pre-wrap text-sm">
+                    {message.searchResults}
+                  </pre>
+                </details>
+              )}
             </div>
             <div className="chat-footer opacity-50 text-xs">
               {formatDate(message.createdAt)}
