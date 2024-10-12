@@ -151,8 +151,8 @@ export default function DashboardLayout({
             <ul className="menu">
               {recentChats.length > 0 ? (
                 recentChats.map((chat) => (
-                  <li key={chat.id} className="flex items-center">
-                    <Link href={isEditMode ? `#` : `/dashboard/chat/${chat.id}`} className={`flex-grow ${pathname === `/dashboard/chat/${chat.id}` ? 'active' : ''}`} onClick={() => document.getElementById('my-drawer-2')?.click()}>
+                  <li key={chat.id} className="flex items-center w-full">
+                    <Link href={isEditMode ? `#` : `/dashboard/chat/${chat.id}`} className={`flex-grow w-full ${pathname === `/dashboard/chat/${chat.id}` ? 'active' : ''}`} onClick={() => document.getElementById('my-drawer-2')?.click()}>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                       </svg>

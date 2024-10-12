@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./auth/[...nextauth]";
 import prisma from '../../lib/prisma';
-// Import your AI service here
+import { GroqAPI } from '../../lib/groq';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -18,17 +18,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { chatId, message } = req.body;
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { apiKey: true },
+    });
+
+    if (!user?.apiKey) {
+      return res.status(400).json({ error: 'API key not found. Please add your API key in the settings.' });
+    }
+
     let chat;
     if (chatId === 'new') {
-      // Create a new chat with a default title
       chat = await prisma.chat.create({
         data: {
           userId: session.user.id,
-          title: "New Chat", // Add this line
+          title: message.substring(0, 50),
+          currentStep: 'Initial response',
+          isCompleted: false,
         },
       });
     } else {
-      // Use existing chat
       chat = await prisma.chat.findUnique({
         where: { id: chatId },
       });
@@ -38,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Save user message
-    const userMessage = await prisma.message.create({
+    await prisma.message.create({
       data: {
         content: message,
         userId: session.user.id,
@@ -47,47 +56,69 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    // Get AI response (implement your AI service call here)
-    const aiResponse = "This is a placeholder AI response.";
+    const groq = new GroqAPI(user.apiKey);
 
-    // Save AI response
-    const assistantMessage = await prisma.message.create({
-      data: {
-        content: aiResponse,
-        userId: session.user.id, // You might want to use a special ID for the AI
-        chatId: chat.id,
-        role: 'assistant',
-      },
+    const steps = [
+      { name: 'Initial response', description: 'Generating initial response' },
+      { name: 'Verified response', description: 'Verifying and refining the response' },
+      { name: 'Web search', description: 'Performing web search for additional information' },
+      { name: 'Validated reasoning', description: 'Validating the reasoning process' },
+      { name: 'Final response', description: 'Generating the final response' },
+    ];
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
     });
 
-    // Update the chat's title and updatedAt timestamp
+    let conversationHistory = [{ role: 'user', content: message }];
+
+    for (const [index, step] of steps.entries()) {
+      try {
+        await prisma.chat.update({
+          where: { id: chat.id },
+          data: { currentStep: step.name },
+        });
+
+        res.write(`data: ${JSON.stringify({ type: 'step', step: index + 1, total: steps.length, description: step.description })}\n\n`);
+
+        const stepResponse = await groq.generateResponse(conversationHistory, step.name, message);
+
+        const savedMessage = await prisma.message.create({
+          data: {
+            content: stepResponse,
+            userId: session.user.id,
+            chatId: chat.id,
+            role: 'assistant',
+            step: step.name,
+          },
+        });
+
+        conversationHistory.push({ role: 'assistant', content: stepResponse });
+        conversationHistory.push({ role: 'user', content: `Proceed to the next step: ${steps[index + 1]?.name || 'Final response'}` });
+
+        res.write(`data: ${JSON.stringify({ type: 'message', id: savedMessage.id, content: stepResponse, step: step.name })}\n\n`);
+      } catch (stepError: any) {
+        console.error(`Error in step ${step.name}:`, stepError);
+        res.write(`data: ${JSON.stringify({ type: 'error', message: `Error in ${step.name}: ${stepError.message}` })}\n\n`);
+      }
+    }
+
     await prisma.chat.update({
       where: { id: chat.id },
       data: { 
-        title: message.substring(0, 50), // Use the first 50 characters of the message as the title
-        updatedAt: new Date() 
+        isCompleted: true,
+        currentStep: 'completed',
+        updatedAt: new Date(),
       },
     });
 
-    res.status(200).json({ 
-      chatId: chat.id,
-      messages: [
-        {
-          id: userMessage.id,
-          content: userMessage.content,
-          role: 'user',
-          createdAt: userMessage.createdAt,
-        },
-        {
-          id: assistantMessage.id,
-          content: assistantMessage.content,
-          role: 'assistant',
-          createdAt: assistantMessage.createdAt,
-        },
-      ],
-    });
-  } catch (error) {
+    res.write(`data: ${JSON.stringify({ type: 'end' })}\n\n`);
+    res.end();
+  } catch (error: any) {
     console.error('Error in chat:', error);
-    res.status(500).json({ error: 'Error processing chat' });
+    res.write(`data: ${JSON.stringify({ type: 'error', message: `Error processing chat: ${error.message}` })}\n\n`);
+    res.end();
   }
 }

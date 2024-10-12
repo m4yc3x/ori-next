@@ -9,6 +9,7 @@ interface Message {
   content: string;
   role: 'user' | 'assistant';
   createdAt: string;
+  step?: string;
 }
 
 export default function ChatView() {
@@ -18,15 +19,18 @@ export default function ChatView() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchMessages();
+    if (chatId !== 'new') {
+      fetchMessages();
+    }
   }, [chatId]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, currentStep]);
 
   const fetchMessages = async () => {
     try {
@@ -50,6 +54,17 @@ export default function ChatView() {
 
     setIsLoading(true);
     setError(null);
+    setCurrentStep(null);
+
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      content: input,
+      role: 'user',
+      createdAt: new Date().toISOString(),
+    };
+
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+    setInput('');
 
     try {
       const response = await fetch('/api/chat', {
@@ -59,15 +74,26 @@ export default function ChatView() {
       });
 
       if (response.ok) {
-        const { chatId: newChatId, messages: newMessages } = await response.json();
-        setInput('');
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
 
-        // If it's a new chat, redirect to the new chat URL
-        if (chatId === 'new' && newChatId) {
-          router.push(`/dashboard/chat/${newChatId}`);
-        } else {
-          // Update messages with the new ones
-          setMessages(prevMessages => [...prevMessages, ...newMessages]);
+        while (true) {
+          const { done, value } = await reader!.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                handleServerSentEvent(data);
+              } catch (error) {
+                console.error('Error parsing SSE data:', error);
+              }
+            }
+          }
         }
       } else {
         const errorData = await response.json();
@@ -78,6 +104,29 @@ export default function ChatView() {
       setError('Error sending message');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleServerSentEvent = (data: any) => {
+    switch (data.type) {
+      case 'step':
+        setCurrentStep(`Step ${data.step}/${data.total}: ${data.description}`);
+        break;
+      case 'message':
+        setMessages(prevMessages => [...prevMessages, {
+          id: data.id,
+          content: data.content,
+          role: 'assistant',
+          createdAt: new Date().toISOString(),
+          step: data.step,
+        }]);
+        break;
+      case 'error':
+        setError(data.message);
+        break;
+      case 'end':
+        setCurrentStep(null);
+        break;
     }
   };
 
@@ -104,23 +153,22 @@ export default function ChatView() {
             <span>{error}</span>
           </div>
         )}
-        {chatId === 'new' ? (
-          <div className="flex flex-col items-center justify-center h-full">
-            <h2 className="text-2xl font-bold mb-4">Start a New Chat</h2>
-            <p className="text-center mb-4">Type your message below to begin a new conversation.</p>
-            <MessageSquarePlus className="w-16 h-16 text-primary" />
-          </div>
-        ) : (
-          messages.map((message) => (
-            <div key={message.id} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
-              <div className={`chat-bubble ${message.role === 'user' ? 'chat-bubble' : 'chat-bubble-secondary bg-neutral-900'}`}>
-                {message.content}
-              </div>
-              <div className="chat-footer opacity-50 text-xs">
-                {formatDate(message.createdAt)}
-              </div>
+        {messages.map((message) => (
+          <div key={message.id} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
+            <div className={`chat-bubble ${message.role === 'user' ? 'chat-bubble' : 'chat-bubble-secondary bg-neutral-900'}`}>
+              {message.content}
             </div>
-          ))
+            <div className="chat-footer opacity-50 text-xs">
+              {formatDate(message.createdAt)}
+              {message.step && <span className="ml-2">({message.step})</span>}
+            </div>
+          </div>
+        ))}
+        {currentStep && (
+          <div className="alert alert-info">
+            <Loader2 className="animate-spin mr-2" />
+            <span>{currentStep}</span>
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
