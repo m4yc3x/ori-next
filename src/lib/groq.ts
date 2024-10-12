@@ -70,7 +70,7 @@ export class GroqAPI {
     const matches = initialResponse.match(/\[\[(.*?)\]\]/);
     let searchQuery = matches ? matches[1] : initialResponse;
 
-    searchQuery = encodeURIComponent(searchQuery).replace(/%20/g, '+');
+    searchQuery = encodeURIComponent(searchQuery.toLowerCase().replace('search', '').replace('query', '')).replace(/%20/g, '+');
 
     try {
       const response = await axios.post('https://html.duckduckgo.com/html', 

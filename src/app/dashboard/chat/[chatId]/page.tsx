@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Send, Loader2, MessageSquarePlus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Send, Loader2, MessageSquarePlus, ChevronDown, ChevronUp, Search } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -146,6 +147,23 @@ export default function ChatView() {
     });
   };
 
+  const formatMessageContent = (message: Message) => {
+    if (message.step === 'Web search') {
+      const matches = message.content.match(/\[\[(.*?)\]\]/);
+      if (matches) {
+        const searchQuery = matches[1];
+        return (
+          <>
+            <ReactMarkdown>{message.content}</ReactMarkdown>
+            <br />
+            <strong>Searching for:</strong> <span className="font-semibold text-primary">{searchQuery.toLowerCase().replace('search', '').replace('query', '')}</span>
+          </>
+        );
+      }
+    }
+    return <ReactMarkdown >{message.content}</ReactMarkdown>;
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <div className="flex-1 overflow-y-auto p-4 space-y-4 mt-16 lg:mt-0">
@@ -158,16 +176,21 @@ export default function ChatView() {
         {messages.map((message) => (
           <div key={message.id} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
             <div className={`chat-bubble ${message.role === 'user' ? 'chat-bubble' : 'chat-bubble-secondary bg-neutral-900'}`}>
-              {message.content}
+              {formatMessageContent(message)}
               {message.searchResults && (
-                <details className="mt-2 bg-base-200 rounded-lg">
-                  <summary className="cursor-pointer p-2 flex items-center">
-                    <span className="mr-2">Raw Search Results</span>
+                <details className="mt-2">
+                  <summary className="cursor-pointer p-2 bg-base-300 rounded-lg flex items-center justify-between">
+                    <span className="font-semibold flex items-center">
+                      <Search className="w-4 h-4 mx-2" />
+                      View Search Results
+                    </span>
                     <ChevronDown className="w-4 h-4" />
                   </summary>
-                  <pre className="p-2 whitespace-pre-wrap text-sm">
-                    {message.searchResults}
-                  </pre>
+                  <div className="p-2 mt-2 bg-base-200 rounded-lg">
+                    <pre className="whitespace-pre-wrap text-sm">
+                      {message.searchResults}
+                    </pre>
+                  </div>
                 </details>
               )}
             </div>
