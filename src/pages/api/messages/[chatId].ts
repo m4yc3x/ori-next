@@ -27,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             content: true,
             createdAt: true,
             role: true,
+            searchResults: true,
           },
         },
       },
@@ -45,6 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       content: message.content,
       role: message.role,
       createdAt: message.createdAt,
+      searchResults: message.searchResults,
     }));
 
     res.status(200).json(formattedMessages);

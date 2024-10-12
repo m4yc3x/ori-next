@@ -157,17 +157,9 @@ export default function ChatView() {
       if (matches) {
         const searchQuery = matches[1];
         return (
-          <>
-            <ReactMarkdown
-              components={{
-                p: Paragraph,
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
-            <br />
+          <div className="mt-4">
             <strong>Searched for:</strong> <span className="font-semibold text-primary">{searchQuery.toLowerCase().replace('search', '').replace('query', '')}</span>
-          </>
+          </div>
         );
       }
     }
@@ -191,7 +183,7 @@ export default function ChatView() {
             <span>{error}</span>
           </div>
         )}
-        {chatId === 'new' ? (
+        {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full">
             <h2 className="text-2xl font-bold mb-4">Start a New Chat</h2>
             <p className="text-center mb-4">Type your message below to begin a new conversation.</p>

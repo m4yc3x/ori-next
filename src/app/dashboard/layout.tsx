@@ -64,6 +64,23 @@ export default function DashboardLayout({
     }
   };
 
+  const createNewChat = async () => {
+    try {
+      const response = await fetch('/api/chats/create', {
+        method: 'POST',
+      });
+      if (response.ok) {
+        const newChat = await response.json();
+        router.push(`/dashboard/chat/${newChat.id}`);
+        fetchRecentChats();
+      } else {
+        console.error('Failed to create new chat');
+      }
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+    }
+  };
+
   if (status === "loading") {
     return <div className="flex justify-center items-center h-screen">
       <span className="loading loading-spinner loading-lg"></span>
@@ -142,7 +159,15 @@ export default function DashboardLayout({
                 <span className="opacity-50 text-xs">({recentChats.length}/10)</span>
               </span>
               <div className="flex items-center">
-                <Link href="/dashboard/chat/new" className="btn btn-sm btn-ghost bg-base-200 flex items-center gap-2 text-xs" onClick={() => { document.getElementById('my-drawer-2')?.click(); fetchRecentChats(); }}>
+                <Link 
+                  href="#" 
+                  className="btn btn-sm btn-ghost bg-base-200 flex items-center gap-2 text-xs" 
+                  onClick={(e) => { 
+                    e.preventDefault();
+                    createNewChat();
+                    document.getElementById('my-drawer-2')?.click();
+                  }}
+                >
                   <Plus size={16} />
                   New Chat
                 </Link>

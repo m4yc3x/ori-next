@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import Link from 'next/link';
 import { MessageSquarePlus } from 'lucide-react';
 
 export default function Dashboard() {
@@ -15,6 +14,22 @@ export default function Dashboard() {
       router.push('/');
     }
   }, [status, router]);
+
+  const createNewChat = async () => {
+    try {
+      const response = await fetch('/api/chats/create', {
+        method: 'POST',
+      });
+      if (response.ok) {
+        const newChat = await response.json();
+        router.push(`/dashboard/chat/${newChat.id}`);
+      } else {
+        console.error('Failed to create new chat');
+      }
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+    }
+  };
 
   if (status === "loading") {
     return <p>Loading...</p>;
@@ -32,10 +47,10 @@ export default function Dashboard() {
           Click on the button below or use the sidebar to start a conversation.
         </p>
         <div className="flex justify-center">
-          <Link href="/dashboard/chat/new" className="btn btn-outline bg-base-200 flex items-center gap-2">
+          <button onClick={createNewChat} className="btn btn-outline bg-base-200 flex items-center gap-2">
             <MessageSquarePlus size={20} />
             Start Chat
-          </Link>
+          </button>
         </div>
       </div>
     </div>

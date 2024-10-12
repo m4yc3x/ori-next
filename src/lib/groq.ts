@@ -59,7 +59,7 @@ export class GroqAPI {
       case 'Verified response':
         return basePrompt + " This is the verified response step. Review and refine the initial response, ensuring accuracy and completeness.";
       case 'Web search':
-        return basePrompt + " This is the web search step. You can now search the internet, only reply with your search query. Example: [[example query]] YOU MUST USE DOUBLE BRACKETS TO SEARCH, ONLY PROVIDE 1 QUERY.";
+        return basePrompt + " This is the web search step. You can now search the internet, respond only with your search query. Example: [[example query]] YOU MUST USE DOUBLE BRACKETS TO SEARCH, ONLY PROVIDE 1 QUERY.";
       case 'Validated reasoning':
         return basePrompt + " This is the validated reasoning step. Integrate the web search results with your initial knowledge to provide a comprehensive answer. Use the search results to validate or correct your previous responses.";
       case 'Final response':
