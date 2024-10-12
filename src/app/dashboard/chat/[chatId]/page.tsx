@@ -152,7 +152,7 @@ export default function ChatView() {
   };
 
   const formatMessageContent = (message: Message) => {
-    if (message.step === 'Web search') {
+    if (message.step === 'Web search' && message.searchResults) {
       const matches = message.content.match(/\[\[(.*?)\]\]/);
       if (matches) {
         const searchQuery = matches[1];
@@ -166,7 +166,7 @@ export default function ChatView() {
               {message.content}
             </ReactMarkdown>
             <br />
-            <strong>Searching for:</strong> <span className="font-semibold text-primary">{searchQuery.toLowerCase().replace('search', '').replace('query', '')}</span>
+            <strong>Searched for:</strong> <span className="font-semibold text-primary">{searchQuery.toLowerCase().replace('search', '').replace('query', '')}</span>
           </>
         );
       }
@@ -191,12 +191,18 @@ export default function ChatView() {
             <span>{error}</span>
           </div>
         )}
-        {messages.map((message) => (
+        {chatId === 'new' ? (
+          <div className="flex flex-col items-center justify-center h-full">
+            <h2 className="text-2xl font-bold mb-4">Start a New Chat</h2>
+            <p className="text-center mb-4">Type your message below to begin a new conversation.</p>
+            <MessageSquarePlus className="w-16 h-16 text-primary" />
+          </div>
+        ) : ( messages.map((message) => (
           <div key={message.id} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
             <div className={`chat-bubble ${message.role === 'user' ? 'chat-bubble' : 'chat-bubble-secondary bg-neutral-900'}`}>
               {formatMessageContent(message)}
               {message.searchResults && (
-                <details className="mt-2">
+                <details className="mt-2 mb-4">
                   <summary className="cursor-pointer p-2 bg-base-300 rounded-lg flex items-center justify-between">
                     <span className="font-semibold flex items-center">
                       <Search className="w-4 h-4 mx-2" />
@@ -217,7 +223,7 @@ export default function ChatView() {
               {message.step && <span className="ml-2">({message.step})</span>}
             </div>
           </div>
-        ))}
+        )))}
         {currentStep && (
           <div className="alert alert-info">
             <Loader2 className="animate-spin mr-2" />

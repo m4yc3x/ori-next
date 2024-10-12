@@ -142,7 +142,7 @@ export default function DashboardLayout({
                 <span className="opacity-50 text-xs">({recentChats.length}/10)</span>
               </span>
               <div className="flex items-center">
-                <Link href="/dashboard/chat/new" className="btn btn-sm btn-ghost bg-base-200 flex items-center gap-2 text-xs">
+                <Link href="/dashboard/chat/new" className="btn btn-sm btn-ghost bg-base-200 flex items-center gap-2 text-xs" onClick={() => { document.getElementById('my-drawer-2')?.click(); fetchRecentChats(); }}>
                   <Plus size={16} />
                   New Chat
                 </Link>

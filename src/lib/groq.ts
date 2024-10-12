@@ -4,6 +4,7 @@ import { JSDOM } from 'jsdom';
 export class GroqAPI {
   private apiKey: string;
   private baseURL: string = 'https://api.groq.com/openai/v1';
+  private lastSearchResults: string = '';
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
@@ -13,8 +14,10 @@ export class GroqAPI {
     try {
       let systemPrompt = this.getSystemPrompt(step);
       if (step === 'Web search') {
-        const searchResults = await this.performSearch(messages[messages.length - 1].content);
-        systemPrompt += `\n\nSearch results:\n${searchResults}`;
+        this.lastSearchResults = await this.performSearch(messages[messages.length - 1].content);
+        systemPrompt += `\n\nSearch results:\n${this.lastSearchResults}`;
+      } else if (step === 'Validated reasoning' && this.lastSearchResults) {
+        systemPrompt += `\n\nPrevious search results:\n${this.lastSearchResults}`;
       }
 
       const response = await fetch(`${this.baseURL}/chat/completions`, {
@@ -24,7 +27,7 @@ export class GroqAPI {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'llama-3.1-70b-versatile',
+          model: 'llama-3.1-8b-instant',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: `Initial prompt: ${initialPrompt}` },
@@ -48,7 +51,7 @@ export class GroqAPI {
   }
 
   private getSystemPrompt(step: string): string {
-    const basePrompt = "You are an AI assistant named Ori, an AI-powered agent operations platform. You will never say your actual model name and only refer to yourself as Ori, this is imperative. You will be provided with a question or set of instructions to follow. You can search the internet with [[search query]] and you will be provided with search results. You will then provide a response in accordance with the instructions.";
+    const basePrompt = "You are an AI assistant named Ori, an AI agent powered by Groq. You will never say your actual model name and only refer to yourself as Ori, this is imperative. You will be provided with a question or set of instructions to follow. You will then provide a response in accordance with the instructions.";
     
     switch (step) {
       case 'Initial response':
@@ -56,9 +59,9 @@ export class GroqAPI {
       case 'Verified response':
         return basePrompt + " This is the verified response step. Review and refine the initial response, ensuring accuracy and completeness.";
       case 'Web search':
-        return basePrompt + " This is the web search step. Identify key topics that require additional information and formulate search queries.";
+        return basePrompt + " This is the web search step. You can now search the internet, only reply with your search query. Example: [[example query]] YOU MUST USE DOUBLE BRACKETS TO SEARCH, ONLY PROVIDE 1 QUERY.";
       case 'Validated reasoning':
-        return basePrompt + " This is the validated reasoning step. Integrate the web search results with your initial knowledge to provide a comprehensive answer.";
+        return basePrompt + " This is the validated reasoning step. Integrate the web search results with your initial knowledge to provide a comprehensive answer. Use the search results to validate or correct your previous responses.";
       case 'Final response':
         return basePrompt + " This is the final response step. Summarize all findings and provide a definitive answer to the user's query.";
       default:

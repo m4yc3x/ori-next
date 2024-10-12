@@ -73,6 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     let conversationHistory = [{ role: 'user', content: message }];
+    let searchResults = '';
 
     for (const [index, step] of steps.entries()) {
       try {
@@ -85,7 +86,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const stepResponse = await groq.generateResponse(conversationHistory, step.name, message);
 
-        let searchResults = '';
         if (step.name === 'Web search') {
           searchResults = await groq.performSearch(stepResponse);
         }
@@ -93,6 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const savedMessage = await prisma.message.create({
           data: {
             content: stepResponse,
+            searchResults: step.name === 'Web search' ? searchResults : undefined,
             userId: session.user.id,
             chatId: chat.id,
             role: 'assistant',
@@ -101,9 +102,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
         conversationHistory.push({ role: 'assistant', content: stepResponse });
+        if (step.name === 'Web search') {
+          conversationHistory.push({ role: 'system', content: `Search results:\n${searchResults}` });
+        }
         conversationHistory.push({ role: 'user', content: `Proceed to the next step: ${steps[index + 1]?.name || 'Final response'}` });
 
-        res.write(`data: ${JSON.stringify({ type: 'message', id: savedMessage.id, content: stepResponse, step: step.name, searchResults })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'message', id: savedMessage.id, content: stepResponse, step: step.name, searchResults: step.name === 'Web search' ? searchResults : undefined })}\n\n`);
       } catch (stepError: any) {
         console.error(`Error in step ${step.name}:`, stepError);
         res.write(`data: ${JSON.stringify({ type: 'error', message: `Error in ${step.name}: ${stepError.message}` })}\n\n`);
