@@ -116,7 +116,7 @@ export default function DashboardLayout({
           <div className="p-4 flex-none">
             <div className="mb-2 font-bold text-xl flex flex-row justify-between items-center">
               <span>O R I . W T F</span>
-              <div className="block text-xs opacity-50 text-right">{session?.user?.email}<br/>v0.1.0</div>
+              <div className="block text-xs opacity-50 text-right">{session?.user?.email}<br/>v0.1.2</div>
             </div>
             <ul className="menu">
               <li>

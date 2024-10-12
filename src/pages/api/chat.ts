@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const savedMessage = await prisma.message.create({
           data: {
             content: stepResponse,
-            searchResults: step.name == 'Web Search' ? (searchResults || undefined) : undefined,
+            searchResults: step.name == 'Web search' ? (searchResults || undefined) : undefined,
             userId: session.user.id,
             chatId: chat.id,
             role: 'assistant',

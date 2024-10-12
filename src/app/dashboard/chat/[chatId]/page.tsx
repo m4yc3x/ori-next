@@ -152,12 +152,12 @@ export default function ChatView() {
   };
 
   const formatMessageContent = (message: Message) => {
-    if (message.step === 'Web search' && message.searchResults) {
+    if (message.step == 'Web search') {
       const matches = message.content.match(/\[\[(.*?)\]\]/);
       if (matches) {
         const searchQuery = matches[1];
         return (
-          <div className="mt-4">
+          <div className="">
             <strong>Searched for:</strong> <span className="font-semibold text-primary">{searchQuery.toLowerCase().replace('search', '').replace('query', '')}</span>
           </div>
         );
@@ -191,18 +191,18 @@ export default function ChatView() {
           </div>
         ) : ( messages.map((message) => (
           <div key={message.id} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
-            <div className={`chat-bubble ${message.role === 'user' ? 'chat-bubble' : 'chat-bubble-secondary bg-neutral-900'}`}>
+            <div className={`chat-bubble pt-4 mb-4 ${message.role === 'user' ? 'chat-bubble' : 'chat-bubble-secondary bg-base-300 text-base-content'}`}>
               {formatMessageContent(message)}
               {message.searchResults && (
                 <details className="mt-2 mb-4">
-                  <summary className="cursor-pointer p-2 bg-base-300 rounded-lg flex items-center justify-between">
+                  <summary className="cursor-pointer p-2 bg-base-100 rounded-lg flex items-center justify-between">
                     <span className="font-semibold flex items-center">
                       <Search className="w-4 h-4 mx-2" />
                       View Search Results
                     </span>
                     <ChevronDown className="w-4 h-4" />
                   </summary>
-                  <div className="p-2 mt-2 bg-base-200 rounded-lg">
+                  <div className="p-4 mt-2 bg-base-100 rounded-lg">
                     <pre className="whitespace-pre-wrap text-sm">
                       {message.searchResults}
                     </pre>
