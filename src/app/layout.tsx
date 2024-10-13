@@ -15,8 +15,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Ori - AI Agent Operations Platform",
-  description: "Enhance your AI interactions with our advanced agent operations platform.",
+  title: "Ori - AI Agent Operations",
+  description: "Enhance your AI interactions with more accurate and refined responses.",
 };
 
 export default function RootLayout({
