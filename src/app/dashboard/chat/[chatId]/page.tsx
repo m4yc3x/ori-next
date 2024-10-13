@@ -182,7 +182,7 @@ export default function ChatView() {
         ) : (
           messages.map((message) => (
             <div key={message.id} className={`chat ${message.role === 'user' ? 'chat-end' : 'chat-start'}`}>
-              <div className={`chat-bubble pt-4 mb-4 ${message.role === 'user' ? 'chat-bubble' : 'chat-bubble-secondary bg-base-300 text-base-content'}`}>
+              <div className={`chat-bubble pt-4 mb-1 ${message.role === 'user' ? 'chat-bubble' : 'chat-bubble-secondary bg-base-300 text-base-content'}`}>
                 {formatMessageContent(message)}
                 {message.searchResults && (
                   <details className="mt-2 mb-4">
@@ -194,9 +194,9 @@ export default function ChatView() {
                       <ChevronDown className="w-4 h-4" />
                     </summary>
                     <div className="p-4 mt-2 bg-base-100 rounded-lg">
-                      <pre className="whitespace-pre-wrap text-sm">
+                      <div className="whitespace-pre-wrap break-words text-xs">
                         {message.searchResults}
-                      </pre>
+                      </div>
                     </div>
                   </details>
                 )}
