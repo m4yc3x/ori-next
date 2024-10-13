@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { chatId, message } = req.body;
+  const { chatId, message, step, initialPrompt, previousStepResponses } = req.body;
 
   try {
     const user = await prisma.user.findUnique({
@@ -46,88 +46,67 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Save user message
-    await prisma.message.create({
-      data: {
-        content: message,
-        userId: session.user.id,
-        chatId: chat.id,
-        role: 'user',
-      },
-    });
+    // Save user message if it's the first step
+    if (step === 'Initial response') {
+      await prisma.message.create({
+        data: {
+          content: message,
+          userId: session.user.id,
+          chatId: chat.id,
+          role: 'user',
+        },
+      });
+    }
 
     const groq = new GroqAPI(user.apiKey);
 
-    const steps = [
-      { name: 'Initial response', description: 'Generating initial response' },
-      { name: 'Verified response', description: 'Verifying and refining the response' },
-      { name: 'Web search', description: 'Performing web search for additional information' },
-      { name: 'Validated reasoning', description: 'Validating the reasoning process' },
-      { name: 'Final response', description: 'Generating the final response' },
-    ];
-
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-    });
-
-    let conversationHistory = [{ role: 'user', content: message }];
-    let searchResults = '';
-
-    for (const [index, step] of steps.entries()) {
-      try {
-        await prisma.chat.update({
-          where: { id: chat.id },
-          data: { currentStep: step.name },
-        });
-
-        res.write(`data: ${JSON.stringify({ type: 'step', step: index + 1, total: steps.length, description: step.description })}\n\n`);
-
-        const stepResponse = await groq.generateResponse(conversationHistory, step.name, message);
-
-        if (step.name === 'Web search') {
-          searchResults = await groq.performSearch(stepResponse);
-        }
-
-        const savedMessage = await prisma.message.create({
-          data: {
-            content: stepResponse,
-            searchResults: step.name == 'Web search' ? (searchResults || undefined) : undefined,
-            userId: session.user.id,
-            chatId: chat.id,
-            role: 'assistant',
-            step: step.name,
-          },
-        });
-
-        conversationHistory.push({ role: 'assistant', content: stepResponse });
-        if (step.name === 'Web search') {
-          conversationHistory.push({ role: 'system', content: `Search results:\n${searchResults}` });
-        }
-        conversationHistory.push({ role: 'user', content: `Proceed to the next step: ${steps[index + 1]?.name || 'Final response'}` });
-
-        res.write(`data: ${JSON.stringify({ type: 'message', id: savedMessage.id, content: stepResponse, step: step.name, searchResults: step.name === 'Web search' ? searchResults : undefined })}\n\n`);
-      } catch (stepError: any) {
-        console.error(`Error in step ${step.name}:`, stepError);
-        res.write(`data: ${JSON.stringify({ type: 'error', message: `Error in ${step.name}: ${stepError.message}` })}\n\n`);
-      }
-    }
-
     await prisma.chat.update({
       where: { id: chat.id },
-      data: { 
-        isCompleted: true,
-        currentStep: 'completed',
-        updatedAt: new Date(),
+      data: { currentStep: step },
+    });
+
+    let stepResponse, searchResults;
+    const context = previousStepResponses.map((resp, index) => ({
+      role: 'assistant',
+      content: `Step ${index + 1}: ${resp.content}${resp.searchResults ? `\nSearch results: ${resp.searchResults}` : ''}`
+    }));
+
+    if (step === 'Web search') {
+      stepResponse = await groq.generateResponse([...context, { role: 'user', content: message }], step, initialPrompt);
+      searchResults = await groq.performSearch(stepResponse);
+    } else {
+      stepResponse = await groq.generateResponse([...context, { role: 'user', content: message }], step, initialPrompt);
+    }
+
+    const savedMessage = await prisma.message.create({
+      data: {
+        content: stepResponse,
+        searchResults: step === 'Web search' ? (searchResults || undefined) : undefined,
+        userId: session.user.id,
+        chatId: chat.id,
+        role: 'assistant',
+        step: step,
       },
     });
 
-    res.write(`data: ${JSON.stringify({ type: 'end' })}\n\n`);
-    res.end();
+    if (step === 'Final response') {
+      await prisma.chat.update({
+        where: { id: chat.id },
+        data: { 
+          isCompleted: true,
+          currentStep: 'completed',
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    res.status(200).json({
+      messageId: savedMessage.id,
+      content: stepResponse,
+      searchResults: step === 'Web search' ? searchResults : undefined,
+    });
   } catch (error: any) {
     console.error('Error in chat:', error);
-    res.write(`data: ${JSON.stringify({ type: 'error', message: `Error processing chat: ${error.message}` })}\n\n`);
-    res.end();
+    res.status(500).json({ error: `Error processing chat: ${error.message}` });
   }
 }

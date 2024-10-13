@@ -14,10 +14,13 @@ export class GroqAPI {
     try {
       let systemPrompt = this.getSystemPrompt(step);
       if (step === 'Web search') {
-        this.lastSearchResults = await this.performSearch(messages[messages.length - 1].content);
-        systemPrompt += `\n\nSearch results:\n${this.lastSearchResults}`;
-      } else if (step === 'Validated reasoning' && this.lastSearchResults) {
-        systemPrompt += `\n\nPrevious search results:\n${this.lastSearchResults}`;
+        // We don't need to perform a search here, as it's done after the response generation
+      } else if (step === 'Validated reasoning') {
+        // Include previous search results in the system prompt
+        const searchStep = messages.find(m => m.content.includes('Step 3:'));
+        if (searchStep) {
+          systemPrompt += `\n\nPrevious search results:\n${searchStep.content.split('Search results:')[1]}`;
+        }
       }
 
       const response = await fetch(`${this.baseURL}/chat/completions`, {
@@ -59,7 +62,7 @@ export class GroqAPI {
       case 'Verified response':
         return basePrompt + " This is the verified response step. Review and refine the initial response, ensuring accuracy and completeness.";
       case 'Web search':
-        return basePrompt + " This is the web search step. You can now search the internet, respond only with your search query. Example: [[example query]] YOU MUST USE DOUBLE BRACKETS TO SEARCH, ONLY PROVIDE 1 QUERY.";
+        return basePrompt + " This is the web search step. You can now search the internet, respond only with your concise search query. Example: [[example query]] YOU MUST USE DOUBLE BRACKETS TO SEARCH, ONLY PROVIDE 1 QUERY.";
       case 'Validated reasoning':
         return basePrompt + " This is the validated reasoning step. Integrate the web search results with your initial knowledge to provide a comprehensive answer. Use the search results to validate or correct your previous responses.";
       case 'Final response':
