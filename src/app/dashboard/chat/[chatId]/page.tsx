@@ -23,6 +23,7 @@ export default function ChatView() {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [complexity, setComplexity] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<string | null>(null);
@@ -230,6 +231,11 @@ export default function ChatView() {
             className="input input-bordered flex-1"
             disabled={isLoading}
           />
+          <select className="select select-bordered" value={complexity} onChange={(e) => setComplexity(parseInt(e.target.value))}>
+            <option value="0">Simple</option>
+            <option value="1">Detailed</option>
+            <option value="2">Unleashed</option>
+          </select>
           <button type="submit" className="btn btn-outline" disabled={isLoading}>
             {isLoading ? <Loader2 className="animate-spin" /> : <Send />}
           </button>
