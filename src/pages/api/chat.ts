@@ -15,17 +15,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { chatId, message, step, initialPrompt, previousStepResponses } = req.body;
+  const { chatId, message, step, initialPrompt, previousStepResponses, complexity, systemPrompt } = req.body;
 
   try {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { apiKey: true },
     });
-
-    if (!user?.apiKey) {
-      return res.status(400).json({ error: 'API key not found. Please add your API key in the settings.' });
-    }
 
     let chat;
     if (chatId === 'new') {
@@ -47,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Save user message if it's the first step
-    if (step === 'Initial response') {
+    if (step === 'Initial response' || step === 'Unleashed response') {
       await prisma.message.create({
         data: {
           content: message,
@@ -58,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    const groq = new GroqAPI(user.apiKey);
+    const groq = new GroqAPI(user?.apiKey || '');
 
     await prisma.chat.update({
       where: { id: chat.id },
@@ -71,11 +67,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       content: `Step ${index + 1}: ${resp.content}${resp.searchResults ? `\nSearch results: ${resp.searchResults}` : ''}`
     }));
 
-    if (step === 'Web search') {
-      stepResponse = await groq.generateResponse([...context, { role: 'user', content: message }], step, initialPrompt);
-      searchResults = await groq.performSearch(stepResponse);
+    if (complexity === 2) { // Unleashed mode
+      stepResponse = await groq.generateResponse(
+        [{ role: 'user', content: message }],
+        step,
+        initialPrompt,
+        systemPrompt + initialPrompt
+      );
     } else {
-      stepResponse = await groq.generateResponse([...context, { role: 'user', content: message }], step, initialPrompt);
+      if (step === 'Web search') {
+        stepResponse = await groq.generateResponse([...context, { role: 'user', content: message }], step, initialPrompt, systemPrompt);
+        searchResults = await groq.performSearch(stepResponse);
+      } else {
+        stepResponse = await groq.generateResponse([...context, { role: 'user', content: message }], step, initialPrompt, systemPrompt);
+      }
     }
 
     const savedMessage = await prisma.message.create({
@@ -89,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    if (step === 'Final response') {
+    if (step === 'Final response' || step === 'Unleashed response') {
       await prisma.chat.update({
         where: { id: chat.id },
         data: { 

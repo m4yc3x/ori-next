@@ -27,9 +27,19 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          throw new Error('Please enter both email and password');
         }
-        return await verifyCredentials(credentials.email, credentials.password);
+        
+        try {
+          const user = await verifyCredentials(credentials.email, credentials.password);
+          if (!user) {
+            throw new Error('Invalid email or password');
+          }
+          return user;
+        } catch (error: any) {
+          // Throw specific error message or default to generic one
+          throw new Error(error.message || 'Authentication failed');
+        }
       }
     })
   ],
@@ -39,6 +49,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/',
+    error: '/?error=true', // Add this line to handle errors
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
@@ -47,7 +58,6 @@ export const authOptions: NextAuthOptions = {
         token.apiKey = user.apiKey;
       }
       if (trigger === "update" && session) {
-        // Update the token with the new session data
         token.name = session.name;
         token.email = session.email;
         token.apiKey = session.apiKey;
@@ -64,6 +74,15 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  // Add custom error messages
+  theme: {
+    error: {
+      'Default': 'Unable to sign in',
+      'CredentialsSignin': 'Invalid email or password',
+      'EmailSignin': 'Check your email address',
+      'SessionRequired': 'Please sign in to access this page',
+    }
+  }
 };
 
 export default NextAuth(authOptions);

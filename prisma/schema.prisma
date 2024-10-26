@@ -26,6 +26,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   chats         Chat[]
   messages      Message[]
+  plan         String    @default("free")
 }
 
 model Chat {

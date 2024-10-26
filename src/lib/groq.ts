@@ -8,11 +8,19 @@ export class GroqAPI {
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
+    if (this.apiKey === '') {
+      this.apiKey = process.env.DEFAULT_GROQ_KEY || '';
+    }
   }
 
-  async generateResponse(messages: Array<{ role: string; content: string }>, step: string, initialPrompt: string): Promise<string> {
+  async generateResponse(
+    messages: Array<{ role: string; content: string }>, 
+    step: string, 
+    initialPrompt: string,
+    customSystemPrompt?: string
+  ): Promise<string> {
     try {
-      let systemPrompt = this.getSystemPrompt(step);
+      let systemPrompt = customSystemPrompt || this.getSystemPrompt(step);
       if (step === 'Web search') {
         // We don't need to perform a search here, as it's done after the response generation
       } else if (step === 'Validated reasoning') {
@@ -26,7 +34,7 @@ export class GroqAPI {
       const response = await fetch(`${this.baseURL}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          'Authorization': `Bearer ${this.apiKey || process.env.DEFAULT_GROQ_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -67,6 +75,8 @@ export class GroqAPI {
         return basePrompt + " This is the validated reasoning step. Integrate the web search results with your initial knowledge to provide a comprehensive answer. Use the search results to validate or correct your previous responses.";
       case 'Final response':
         return basePrompt + " This is the final response step. Summarize all findings and provide a definitive answer to the user's query.";
+      case 'Unleashed response':
+        return basePrompt;
       default:
         return basePrompt;
     }
