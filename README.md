@@ -65,6 +65,19 @@ Ori.wtf is an advanced AI-powered chat platform that enhances your interactions 
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [DaisyUI](https://daisyui.com/) - UI components
 
+## Production
+
+To deploy the application, follow the development instructions above, but instead of running `npm run dev`, run `npm run build`.
+
+You will need to set the `DEFAULT_GROQ_KEY` environment variable to your Groq API key for free users.
+
+Use `pm2` to keep the app running:
+
+1. `npm install -g pm2`
+2. `pm2 start npm --name "ori" -- start`
+3. `pm2 startup` (*starts the application at boot*)
+4. `pm2 save` (*saves the process list*)
+
 ## 🤝 Contributing
 
 You can contribute if you want!
