@@ -65,7 +65,7 @@ Ori.wtf is an advanced AI-powered chat platform that enhances your interactions 
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [DaisyUI](https://daisyui.com/) - UI components
 
-## Production
+## 🚀 Production
 
 To deploy the application, follow the development instructions above, but instead of running `npm run dev`, run `npm run build`.
 
